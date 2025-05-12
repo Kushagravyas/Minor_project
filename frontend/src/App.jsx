@@ -7,14 +7,57 @@ import rehypeHighlight from "rehype-highlight"
 import "highlight.js/styles/github-dark.css"
 import axios from "axios"
 import { motion, AnimatePresence } from "framer-motion"
+import { ThemeProvider, useTheme } from "./ThemeContext"
 import "./App.css"
 
-function App() {
+// Icons for light and dark mode
+const SunIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="5"></circle>
+    <line x1="12" y1="1" x2="12" y2="3"></line>
+    <line x1="12" y1="21" x2="12" y2="23"></line>
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+    <line x1="1" y1="12" x2="3" y2="12"></line>
+    <line x1="21" y1="12" x2="23" y2="12"></line>
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+  </svg>
+)
+
+const MoonIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+  </svg>
+)
+
+function AppContent() {
   const [code, setCode] = useState("")
   const [review, setReview] = useState("")
   const [isReviewing, setIsReviewing] = useState(false)
   const [activeTab, setActiveTab] = useState("editor")
   const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const { theme, toggleTheme } = useTheme()
 
   const BASE_URL = import.meta.env.VITE_API_URL
 
@@ -24,6 +67,11 @@ function App() {
 
   async function reviewCode() {
     setIsReviewing(true)
+    // Switch to review panel immediately when starting review
+    if (window.innerWidth < 768) {
+      setActiveTab("review")
+    }
+
     try {
       const response = await axios.post(`${BASE_URL}/ai/get-review`, { code })
       setReview(response.data)
@@ -68,28 +116,13 @@ function App() {
         </motion.div>
 
         <motion.div className="header-actions" variants={itemVariants}>
-          <motion.button className="theme-toggle" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="5"></circle>
-              <line x1="12" y1="1" x2="12" y2="3"></line>
-              <line x1="12" y1="21" x2="12" y2="23"></line>
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-              <line x1="1" y1="12" x2="3" y2="12"></line>
-              <line x1="21" y1="12" x2="23" y2="12"></line>
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-            </svg>
+          <motion.button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {theme === "dark" ? <SunIcon /> : <MoonIcon />}
           </motion.button>
 
           <motion.button
@@ -176,7 +209,7 @@ function App() {
                 fontFamily: '"Fira code", "Fira Mono", monospace',
                 fontSize: 16,
                 backgroundColor: "transparent",
-                color: "#fff",
+                color: theme === "dark" ? "#fff" : "#0f172a",
                 height: "100%",
                 width: "100%",
                 borderRadius: "8px",
@@ -195,7 +228,7 @@ function App() {
               className="review-button"
               onClick={reviewCode}
               disabled={isReviewing || !code.trim()}
-              whileHover={{ scale: 1.03, backgroundColor: "#6366f1" }}
+              whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -249,11 +282,7 @@ function App() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                <motion.button
-                  className="action-button"
-                  whileHover={{ scale: 1.1, backgroundColor: "#2a2a2a" }}
-                  whileTap={{ scale: 0.95 }}
-                >
+                <motion.button className="action-button" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="18"
@@ -269,11 +298,7 @@ function App() {
                     <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
                   </svg>
                 </motion.button>
-                <motion.button
-                  className="action-button"
-                  whileHover={{ scale: 1.1, backgroundColor: "#2a2a2a" }}
-                  whileTap={{ scale: 0.95 }}
-                >
+                <motion.button className="action-button" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="18"
@@ -293,6 +318,7 @@ function App() {
               </motion.div>
             )}
           </div>
+          <AnimatePresence>{isReviewing && <LoadingOverlay />}</AnimatePresence>
 
           <div className="review-content">
             {review ? (
@@ -338,6 +364,48 @@ function App() {
         <p>© {new Date().getFullYear()} CodeReview • AI-Powered Code Analysis</p>
       </motion.footer>
     </motion.div>
+  )
+}
+
+function LoadingOverlay() {
+  return (
+    <motion.div
+      className="loading-overlay"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <motion.div
+        className="loading-container"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
+      >
+        <div className="loading-icon">
+          <div className="loading-circle"></div>
+          <div className="loading-circle"></div>
+          <div className="loading-circle"></div>
+        </div>
+        <div className="loading-text">
+          Analyzing Code<span className="loading-dots"></span>
+        </div>
+        <div className="loading-subtext">
+          Our AI is reviewing your code for best practices, potential bugs, and optimization opportunities
+        </div>
+        <div className="loading-progress">
+          <div className="loading-progress-bar"></div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   )
 }
 
