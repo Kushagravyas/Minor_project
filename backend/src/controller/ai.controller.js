@@ -1,6 +1,6 @@
-const aiservice = require('../service/ai.service');
+const aiservice = require('../services/ai.service.js');
 
-module.exports = async (req, res) => {
+module.exports.getResponse = async (req, res) => {
     const prompt = req.query.prompt;
 
     if (!prompt) {
@@ -8,4 +8,6 @@ module.exports = async (req, res) => {
     }
 
     const response = await aiservice(prompt);
+
+    res.send(response);
 }
