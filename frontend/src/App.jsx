@@ -7,7 +7,15 @@ function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <>  
+    <> 
+    <main>
+      <div className="left">
+        <div className="code">
+          <div className="review"></div>
+        </div>
+      </div>
+      <div className="right"></div>
+      </main> 
     </>
   )
 }
